@@ -1,13 +1,7 @@
-import React, { useState } from "react";
+import React from "react";
 import TaskItem from "../components/taskItem";
 
 const TaskList = (props) => {
-  const filter = {
-    filterName: "",
-    filterStatus: "-1",
-  };
-
-  const [filterTask, setFilterTask] = useState(filter);
   const onDeleteTaskItem = (taskID) => {
     props.onDelete(taskID);
   };
@@ -16,7 +10,10 @@ const TaskList = (props) => {
     const target = event.target;
     const name = target.name;
     const value = target.value;
-    setFilterTask({ ...filterTask, [name]: value });
+    const filterTask = {
+      [name]: value,
+    };
+    props.onFilter(filterTask);
   };
 
   return (

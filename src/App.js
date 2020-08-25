@@ -1,14 +1,13 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./App.css";
 import TaskForm from "./components/taskForm";
 import FormSearch from "./components/formSearch";
 import TaskList from "./components/taskList";
 
 function App() {
-  const task = [];
-
   const [isDispplay, setIsDisplay] = useState(false);
-  const [taskItem, setTaskItem] = useState(task);
+  const [taskItem, setTaskItem] = useState([]);
+  const [filterTaskName, setFilterTaskName] = useState("");
 
   const toggleDisplay = () => {
     setIsDisplay(!isDispplay);
@@ -20,12 +19,26 @@ function App() {
     ? "col-xs-8 col-sm-8 col-md-8 col-lg-8"
     : "col-xs-12 col-sm-12 col-md-12 col-lg-12";
 
+  useEffect(() => {
+    const tasks = localStorage.getItem("tasks");
+    if (tasks && tasks.length > 0) {
+      setTaskItem(JSON.parse(tasks));
+    }
+  }, []);
+  const filterTask = taskItem.filter((tasks) => {
+    return (
+      tasks.name.toLowerCase().indexOf(filterTaskName.toLowerCase()) !== -1
+    );
+    //return tasks.name.toLowerCase().includes(filterTaskName.toLowerCase());
+  });
+
   const handleSumbitFormTask = (dataTask) => {
     const tasks = [...taskItem];
     for (let i = 0; i <= tasks.length; i++) {
       dataTask.id = i + 1;
     }
     tasks.push(dataTask);
+    localStorage.setItem("tasks", JSON.stringify(tasks));
     setTaskItem(tasks);
   };
 
@@ -36,6 +49,7 @@ function App() {
       tasks.splice(indexTask, 1);
     }
     setTaskItem(tasks);
+    localStorage.setItem("tasks", JSON.stringify(tasks));
   };
 
   const findIndex = (id) => {
@@ -49,20 +63,19 @@ function App() {
     return result;
   };
 
+  const onFilterTaskItem = (taskFilter) => {
+    setFilterTaskName(taskFilter.filterName);
+  };
+
   // useEffect(() => {
   //   const tasks = [...taskItem];
-  //   const filter = filterTask;
-  //   if (filter.filterName) {
-  //     const result = tasks.filter((item) => {
-  //       return (
-  //         item.name.toLowerCase().indexOf(filter.filterName.toLowerCase()) !==
-  //         -1
-  //       );
-  //     });
-  //     setTaskItem(result);
-  //   }
-  //   console.log(taskItem);
-  // }, [filterTask]);
+  //   const results = tasks.filter((item) => {
+  //     return (
+  //       item.name.toLowerCase().indexOf(filterTaskName.toLowerCase()) !== -1
+  //     );
+  //   });
+  //   setTaskItem(results);
+  // }, [filterTaskName]);
 
   return (
     <div className="App">
@@ -91,7 +104,11 @@ function App() {
             </div>
             <div className="row mt-15" style={{ marginTop: "15px" }}>
               <div className="col-xs-12 col-sm-12 col-md-12 col-lg-12">
-                <TaskList tasks={taskItem} onDelete={onDeleteTaskItem} />
+                <TaskList
+                  tasks={filterTask}
+                  onDelete={onDeleteTaskItem}
+                  onFilter={onFilterTaskItem}
+                />
               </div>
             </div>
           </div>
