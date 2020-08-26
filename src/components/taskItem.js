@@ -5,6 +5,10 @@ const TaskItem = (props) => {
     props.onDeleteApp(props.task.id);
   };
 
+  const onSeletecItemEdit = () => {
+    props.onEditItem(props.task);
+  };
+
   return (
     <tr>
       <td>{props.task.id}</td>
@@ -17,12 +21,16 @@ const TaskItem = (props) => {
         )}
       </td>
       <td className="text-center">
-        <button type="button" className="btn btn-warning">
-          <span className="fa fa-pencil mr-5"></span>Sửa
+        <button
+          type="button"
+          className="btn btn-warning"
+          onClick={onSeletecItemEdit}
+        >
+          <span className="fa fa-pencil mr-5"></span> Sửa
         </button>
         &nbsp;
         <button type="button" className="btn btn-danger" onClick={onDelete}>
-          <span className="fa fa-trash mr-5"></span>Xóa
+          <span className="fa fa-trash mr-5"></span> Xóa
         </button>
       </td>
     </tr>

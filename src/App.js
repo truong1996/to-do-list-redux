@@ -1,16 +1,20 @@
 import React, { useState, useEffect } from "react";
 import "./App.css";
 import TaskForm from "./components/taskForm";
-import FormSearch from "./components/formSearch";
 import TaskList from "./components/taskList";
+import TaskSortControl from "./components/taskSortControl";
 
 function App() {
   const [isDispplay, setIsDisplay] = useState(false);
   const [taskItem, setTaskItem] = useState([]);
   const [filterTaskName, setFilterTaskName] = useState("");
+  const [filterTaskStatus, setFilterTaskStatus] = useState("-1");
+  const [itemEdit, setItemEdit] = useState(null);
+  const [sortItem, setSortItem] = useState({});
 
   const toggleDisplay = () => {
     setIsDisplay(!isDispplay);
+    setItemEdit(null);
   };
   const classNameTaskForm = isDispplay
     ? "col-xs-4 col-sm-4 col-md-4 col-lg-4"
@@ -25,21 +29,22 @@ function App() {
       setTaskItem(JSON.parse(tasks));
     }
   }, []);
-  const filterTask = taskItem.filter((tasks) => {
-    return (
-      tasks.name.toLowerCase().indexOf(filterTaskName.toLowerCase()) !== -1
-    );
-    //return tasks.name.toLowerCase().includes(filterTaskName.toLowerCase());
-  });
 
   const handleSumbitFormTask = (dataTask) => {
     const tasks = [...taskItem];
-    for (let i = 0; i <= tasks.length; i++) {
-      dataTask.id = i + 1;
+    console.log(dataTask.id);
+    if (dataTask.id === undefined) {
+      for (let i = 0; i <= tasks.length; i++) {
+        dataTask.id = i + 1;
+      }
+      tasks.push(dataTask);
+    } else {
+      const index = findIndex(dataTask.id);
+      tasks[index] = dataTask;
     }
-    tasks.push(dataTask);
     localStorage.setItem("tasks", JSON.stringify(tasks));
     setTaskItem(tasks);
+    toggleDisplay();
   };
 
   const onDeleteTaskItem = (taskId) => {
@@ -63,19 +68,68 @@ function App() {
     return result;
   };
 
-  const onFilterTaskItem = (taskFilter) => {
-    setFilterTaskName(taskFilter.filterName);
+  const onFilterTaskItem = (filterName, filterStatus) => {
+    setFilterTaskName(filterName);
+    setFilterTaskStatus(filterStatus);
   };
+  const onEditTask = (task) => {
+    setItemEdit({ ...task });
+    setIsDisplay(true);
+  };
+  const onSortTaskItem = (sortName, sortvalue) => {
+    setSortItem({ ...sortItem, sortName: sortName, sortValue: sortvalue });
+  };
+  const filterTask = taskItem.filter((task) => {
+    if (filterTaskName) {
+      if (filterTaskStatus === "1") {
+        return (
+          task.name.toLowerCase().indexOf(filterTaskName.toLowerCase()) !==
+            -1 && task.status === "1"
+        );
+      }
+      if (filterTaskStatus === "0") {
+        return (
+          task.name.toLowerCase().indexOf(filterTaskName.toLowerCase()) !==
+            -1 && task.status === "0"
+        );
+      }
+      return (
+        task.name.toLowerCase().indexOf(filterTaskName.toLowerCase()) !== -1
+        //return tasks.name.toLowerCase().includes(filterTaskName.toLowerCase());
+      );
+    }
+    if (filterTaskStatus === "-1") {
+      return task;
+    } else {
+      return task.status === (filterTaskStatus === "1" ? "1" : "0");
+    }
+  });
 
-  // useEffect(() => {
-  //   const tasks = [...taskItem];
-  //   const results = tasks.filter((item) => {
-  //     return (
-  //       item.name.toLowerCase().indexOf(filterTaskName.toLowerCase()) !== -1
-  //     );
-  //   });
-  //   setTaskItem(results);
-  // }, [filterTaskName]);
+  if (sortItem.sortName === "name") {
+    filterTask.sort((a, b) => {
+      var nameA = a.name.toUpperCase(); // bỏ qua hoa thường
+      var nameB = b.name.toUpperCase(); // bỏ qua hoa thường
+      if (nameA > nameB) {
+        return sortItem.sortValue;
+      }
+      if (nameA < nameB) {
+        return -sortItem.sortValue;
+      }
+      return 0;
+    });
+  }
+
+  if (sortItem.sortName === "status") {
+    filterTask.sort((a, b) => {
+      if (a.status > b.status) {
+        return -sortItem.sortValue;
+      }
+      if (a.status < b.status) {
+        return sortItem.sortValue;
+      }
+      return 0;
+    });
+  }
 
   return (
     <div className="App">
@@ -86,20 +140,27 @@ function App() {
         </div>
         <div className="row">
           <div className={classNameTaskForm}>
-            {isDispplay ? <TaskForm getDataTask={handleSumbitFormTask} /> : ""}
+            {isDispplay ? (
+              <TaskForm
+                getDataTask={handleSumbitFormTask}
+                itemEditing={itemEdit}
+              />
+            ) : (
+              ""
+            )}
           </div>
           <div className={classNameTaskList}>
-            <button
-              type="button"
-              className="btn btn-primary mb-2 ml-0"
-              style={{ display: "block", marginBottom: "20px" }}
-              onClick={toggleDisplay}
-            >
-              <span className="fa fa-plus mr-5"></span>Thêm Công Việc
-            </button>
             <div className="row mt-1">
-              <div className="col-xs-6 col-sm-6 col-md-6 col-lg-6">
-                <FormSearch />
+              <div className="col-xs-6 col-sm-6 col-md-6 col-lg-6 btn__control">
+                <button
+                  type="button"
+                  className="btn btn-primary mb-2 ml-0"
+                  style={{ display: "block", marginBottom: "20px" }}
+                  onClick={toggleDisplay}
+                >
+                  <span className="fa fa-plus mr-5"></span> Thêm Công Việc
+                </button>
+                <TaskSortControl onSort={onSortTaskItem} value={sortItem} />
               </div>
             </div>
             <div className="row mt-15" style={{ marginTop: "15px" }}>
@@ -108,6 +169,7 @@ function App() {
                   tasks={filterTask}
                   onDelete={onDeleteTaskItem}
                   onFilter={onFilterTaskItem}
+                  onEdit={onEditTask}
                 />
               </div>
             </div>

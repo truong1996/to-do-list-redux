@@ -1,19 +1,28 @@
-import React from "react";
+import React, { useState } from "react";
 import TaskItem from "../components/taskItem";
 
 const TaskList = (props) => {
+  const [filterTask, setFilterTask] = useState({
+    filterName: "",
+    filterStatus: "-1",
+  });
   const onDeleteTaskItem = (taskID) => {
     props.onDelete(taskID);
+  };
+
+  const onEditTaskItem = (task) => {
+    props.onEdit(task);
   };
 
   const setDataFilterTask = (event) => {
     const target = event.target;
     const name = target.name;
-    const value = target.value;
-    const filterTask = {
-      [name]: value,
-    };
-    props.onFilter(filterTask);
+    const value = target.type === "checkbox" ? target.checked : target.value;
+    props.onFilter(
+      name === "filterName" ? value : filterTask.filterName,
+      name === "filterStatus" ? value : filterTask.filterStatus
+    );
+    setFilterTask({ ...filterTask, [name]: value });
   };
 
   return (
@@ -35,6 +44,7 @@ const TaskList = (props) => {
               className="form-control"
               onChange={setDataFilterTask}
               name="filterName"
+              value={filterTask.filterName}
             />
           </td>
           <td>
@@ -43,16 +53,21 @@ const TaskList = (props) => {
               onChange={setDataFilterTask}
               name="filterStatus"
             >
-              <option value="-1">Tất Cả</option>
-              <option value="0">Ẩn</option>
-              <option value="1">Kích Hoạt</option>
+              <option value={-1}>Tất Cả</option>
+              <option value={0}>Ẩn</option>
+              <option value={1}>Kích Hoạt</option>
             </select>
           </td>
           <td></td>
         </tr>
         {props.tasks.map((value, index) => {
           return (
-            <TaskItem key={index} task={value} onDeleteApp={onDeleteTaskItem} />
+            <TaskItem
+              key={index}
+              task={value}
+              onDeleteApp={onDeleteTaskItem}
+              onEditItem={onEditTaskItem}
+            />
           );
         })}
       </tbody>

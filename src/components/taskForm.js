@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 const TaskForm = (props) => {
   const sendCreateTask = {};
@@ -18,10 +18,20 @@ const TaskForm = (props) => {
     event.target.reset();
   };
 
+  useEffect(() => {
+    if (props.itemEditing && props.itemEditing !== null) {
+      setNewTask(props.itemEditing);
+    } else {
+      setNewTask({});
+    }
+  }, [props.itemEditing]);
+
   return (
     <div className="panel panel-warning">
       <div className="panel-heading">
-        <h3 className="panel-title">Thêm Công Việc</h3>
+        <h3 className="panel-title">
+          {props.itemEditing ? "Cập nhập Công việc" : "Thêm công việc mới"}
+        </h3>
       </div>
       <div className="panel-body">
         <form onSubmit={handleOnSubmit}>
@@ -33,6 +43,7 @@ const TaskForm = (props) => {
               className="form-control"
               name="name"
               onChange={handleChangeTxt}
+              value={newTask.name || ""}
             />
           </div>
           <label>Trạng Thái :</label>
@@ -41,18 +52,18 @@ const TaskForm = (props) => {
             required="required"
             name="status"
             onChange={handleChangeTxt}
+            value={newTask.status || ""}
           >
-            <option value="0">--Selecte--</option>
+            <option value="0">Chưa kích hoạt</option>
             <option value="1">Kích Hoạt</option>
-            <option value="0">Ẩn</option>
           </select>
           <br />
           <div className="text-center">
             <button type="submit" className="btn btn-warning">
-              Thêm
+              {props.itemEditing ? "Lưu" : "Thêm"}
             </button>
             &nbsp;
-            <button type="submit" className="btn btn-danger">
+            <button type="button" className="btn btn-danger">
               Hủy Bỏ
             </button>
           </div>
