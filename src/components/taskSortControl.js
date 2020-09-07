@@ -1,8 +1,14 @@
 import React from "react";
+import { connect } from "react-redux";
+import * as actions from "../actions/index";
 
 const TaskSortControl = (props) => {
   const clickSort = (sortBy, sortValue) => {
-    props.onSort(sortBy, sortValue);
+    const sortData = {
+      sortBy,
+      sortValue,
+    };
+    props.onSortItem(sortData);
   };
 
   return (
@@ -22,7 +28,7 @@ const TaskSortControl = (props) => {
           <a
             role="button"
             className={
-              props.value.sortName === "name" && props.value.sortValue === 1
+              props.sortTask.sortBy === "name" && props.sortTask.sortValue === 1
                 ? "sort_selected"
                 : ""
             }
@@ -34,7 +40,8 @@ const TaskSortControl = (props) => {
           <a
             role="button"
             className={
-              props.value.sortName === "name" && props.value.sortValue === -1
+              props.sortTask.sortBy === "name" &&
+              props.sortTask.sortValue === -1
                 ? "sort_selected"
                 : ""
             }
@@ -47,7 +54,8 @@ const TaskSortControl = (props) => {
           <a
             role="button"
             className={
-              props.value.sortName === "status" && props.value.sortValue === 1
+              props.sortTask.sortBy === "status" &&
+              props.sortTask.sortValue === 1
                 ? "sort_selected"
                 : ""
             }
@@ -59,7 +67,8 @@ const TaskSortControl = (props) => {
           <a
             role="button"
             className={
-              props.value.sortName === "status" && props.value.sortValue === -1
+              props.sortTask.sortBy === "status" &&
+              props.sortTask.sortValue === -1
                 ? "sort_selected"
                 : ""
             }
@@ -72,4 +81,18 @@ const TaskSortControl = (props) => {
   );
 };
 
-export default TaskSortControl;
+const mapState = (state) => {
+  return {
+    sortTask: state.sortTask,
+  };
+};
+
+const mapDispatch = (dispatch, props) => {
+  return {
+    onSortItem: (sortItem) => {
+      dispatch(actions.shortTask(sortItem));
+    },
+  };
+};
+
+export default connect(mapState, mapDispatch)(TaskSortControl);

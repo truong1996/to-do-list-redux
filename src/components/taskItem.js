@@ -1,17 +1,20 @@
 import React from "react";
+import { connect } from "react-redux";
+import * as actions from "../actions/index";
 
 const TaskItem = (props) => {
   const onDelete = () => {
-    props.onDeleteApp(props.task.id);
+    props.onDeleteTask(props.task.id);
   };
 
   const onSeletecItemEdit = () => {
-    props.onEditItem(props.task);
+    props.onEditTask(props.task);
+    props.onOpenForm();
   };
 
   return (
     <tr>
-      <td>{props.task.id}</td>
+      <td>{props.id + 1}</td>
       <td>{props.task.name}</td>
       <td className="text-center">
         {props.task.status === "1" ? (
@@ -37,4 +40,24 @@ const TaskItem = (props) => {
   );
 };
 
-export default TaskItem;
+const mapStatetoProp = (state) => {
+  return {
+    isDisplaying: state.toggleForm,
+  };
+};
+
+const mapDispatchToProps = (dispatch, props) => {
+  return {
+    onDeleteTask: (taskID) => {
+      dispatch(actions.delTask(taskID));
+    },
+    onEditTask: (task) => {
+      dispatch(actions.editTask(task));
+    },
+    onOpenForm: () => {
+      dispatch(actions.openForm());
+    },
+  };
+};
+
+export default connect(mapStatetoProp, mapDispatchToProps)(TaskItem);

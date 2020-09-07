@@ -1,7 +1,13 @@
 import React, { useState, useEffect } from "react";
+import { connect } from "react-redux";
+import * as actions from "./../actions/index";
 
 const TaskForm = (props) => {
-  const sendCreateTask = {};
+  const sendCreateTask = {
+    id: "",
+    name: "",
+    status: "0",
+  };
 
   const [newTask, setNewTask] = useState(sendCreateTask);
 
@@ -12,25 +18,31 @@ const TaskForm = (props) => {
     setNewTask({ ...newTask, [name]: value });
   };
 
-  const handleOnSubmit = (event) => {
-    event.preventDefault();
-    props.getDataTask(newTask);
-    event.target.reset();
-  };
-
   useEffect(() => {
     if (props.itemEditing && props.itemEditing !== null) {
       setNewTask(props.itemEditing);
     } else {
-      setNewTask({});
+      setNewTask({
+        name: "",
+        status: "0",
+      });
     }
   }, [props.itemEditing]);
+
+  const handleOnSubmit = (event) => {
+    event.preventDefault();
+    props.onAddTasks(newTask);
+    props.onCloseForm();
+    event.target.reset();
+  };
 
   return (
     <div className="panel panel-warning">
       <div className="panel-heading">
         <h3 className="panel-title">
-          {props.itemEditing ? "Cập nhập Công việc" : "Thêm công việc mới"}
+          {props.itemEditing.id !== ""
+            ? "Cập nhập Công việc"
+            : "Thêm công việc mới"}
         </h3>
       </div>
       <div className="panel-body">
@@ -43,7 +55,7 @@ const TaskForm = (props) => {
               className="form-control"
               name="name"
               onChange={handleChangeTxt}
-              value={newTask.name || ""}
+              value={newTask.name}
             />
           </div>
           <label>Trạng Thái :</label>
@@ -52,7 +64,7 @@ const TaskForm = (props) => {
             required="required"
             name="status"
             onChange={handleChangeTxt}
-            value={newTask.status || ""}
+            value={newTask.status}
           >
             <option value="0">Chưa kích hoạt</option>
             <option value="1">Kích Hoạt</option>
@@ -73,4 +85,21 @@ const TaskForm = (props) => {
   );
 };
 
-export default TaskForm;
+const mapStateToProps = (state) => {
+  return {
+    itemEditing: state.editTask,
+  };
+};
+
+const mapDispatchToProps = (dispatch, props) => {
+  return {
+    onAddTasks: (tasks) => {
+      dispatch(actions.addTask(tasks));
+    },
+    onCloseForm: () => {
+      dispatch(actions.closeForm());
+    },
+  };
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(TaskForm);

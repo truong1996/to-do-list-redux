@@ -1,135 +1,31 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import "./App.css";
 import TaskForm from "./components/taskForm";
 import TaskList from "./components/taskList";
 import TaskSortControl from "./components/taskSortControl";
+import { connect } from "react-redux";
+import * as actions from "./actions/index";
 
-function App() {
-  const [isDispplay, setIsDisplay] = useState(false);
-  const [taskItem, setTaskItem] = useState([]);
-  const [filterTaskName, setFilterTaskName] = useState("");
-  const [filterTaskStatus, setFilterTaskStatus] = useState("-1");
-  const [itemEdit, setItemEdit] = useState(null);
-  const [sortItem, setSortItem] = useState({});
-
+function App(props) {
   const toggleDisplay = () => {
-    setIsDisplay(!isDispplay);
-    setItemEdit(null);
+    const clearTask = {
+      id: "",
+      name: "",
+      status: "0",
+    };
+    if (props.itemEditing && props.itemEditing.id !== "") {
+      props.onOpenForm();
+    } else {
+      props.onToggleTask();
+    }
+    props.onClearForm(clearTask);
   };
-  const classNameTaskForm = isDispplay
+  const classNameTaskForm = props.isDispplay
     ? "col-xs-4 col-sm-4 col-md-4 col-lg-4"
     : "";
-  const classNameTaskList = isDispplay
+  const classNameTaskList = props.isDispplay
     ? "col-xs-8 col-sm-8 col-md-8 col-lg-8"
     : "col-xs-12 col-sm-12 col-md-12 col-lg-12";
-
-  useEffect(() => {
-    const tasks = localStorage.getItem("tasks");
-    if (tasks && tasks.length > 0) {
-      setTaskItem(JSON.parse(tasks));
-    }
-  }, []);
-
-  const handleSumbitFormTask = (dataTask) => {
-    const tasks = [...taskItem];
-    console.log(dataTask.id);
-    if (dataTask.id === undefined) {
-      for (let i = 0; i <= tasks.length; i++) {
-        dataTask.id = i + 1;
-      }
-      tasks.push(dataTask);
-    } else {
-      const index = findIndex(dataTask.id);
-      tasks[index] = dataTask;
-    }
-    localStorage.setItem("tasks", JSON.stringify(tasks));
-    setTaskItem(tasks);
-    toggleDisplay();
-  };
-
-  const onDeleteTaskItem = (taskId) => {
-    const tasks = [...taskItem];
-    let indexTask = findIndex(taskId);
-    if (indexTask !== -1) {
-      tasks.splice(indexTask, 1);
-    }
-    setTaskItem(tasks);
-    localStorage.setItem("tasks", JSON.stringify(tasks));
-  };
-
-  const findIndex = (id) => {
-    const task = [...taskItem];
-    let result = -1;
-    task.forEach(function (item, index) {
-      if (item.id === id) {
-        result = index;
-      }
-    });
-    return result;
-  };
-
-  const onFilterTaskItem = (filterName, filterStatus) => {
-    setFilterTaskName(filterName);
-    setFilterTaskStatus(filterStatus);
-  };
-  const onEditTask = (task) => {
-    setItemEdit({ ...task });
-    setIsDisplay(true);
-  };
-  const onSortTaskItem = (sortName, sortvalue) => {
-    setSortItem({ ...sortItem, sortName: sortName, sortValue: sortvalue });
-  };
-  const filterTask = taskItem.filter((task) => {
-    if (filterTaskName) {
-      if (filterTaskStatus === "1") {
-        return (
-          task.name.toLowerCase().indexOf(filterTaskName.toLowerCase()) !==
-            -1 && task.status === "1"
-        );
-      }
-      if (filterTaskStatus === "0") {
-        return (
-          task.name.toLowerCase().indexOf(filterTaskName.toLowerCase()) !==
-            -1 && task.status === "0"
-        );
-      }
-      return (
-        task.name.toLowerCase().indexOf(filterTaskName.toLowerCase()) !== -1
-        //return tasks.name.toLowerCase().includes(filterTaskName.toLowerCase());
-      );
-    }
-    if (filterTaskStatus === "-1") {
-      return task;
-    } else {
-      return task.status === (filterTaskStatus === "1" ? "1" : "0");
-    }
-  });
-
-  if (sortItem.sortName === "name") {
-    filterTask.sort((a, b) => {
-      var nameA = a.name.toUpperCase(); // bỏ qua hoa thường
-      var nameB = b.name.toUpperCase(); // bỏ qua hoa thường
-      if (nameA > nameB) {
-        return sortItem.sortValue;
-      }
-      if (nameA < nameB) {
-        return -sortItem.sortValue;
-      }
-      return 0;
-    });
-  }
-
-  if (sortItem.sortName === "status") {
-    filterTask.sort((a, b) => {
-      if (a.status > b.status) {
-        return -sortItem.sortValue;
-      }
-      if (a.status < b.status) {
-        return sortItem.sortValue;
-      }
-      return 0;
-    });
-  }
 
   return (
     <div className="App">
@@ -140,14 +36,7 @@ function App() {
         </div>
         <div className="row">
           <div className={classNameTaskForm}>
-            {isDispplay ? (
-              <TaskForm
-                getDataTask={handleSumbitFormTask}
-                itemEditing={itemEdit}
-              />
-            ) : (
-              ""
-            )}
+            {props.isDispplay ? <TaskForm /> : ""}
           </div>
           <div className={classNameTaskList}>
             <div className="row mt-1">
@@ -160,17 +49,12 @@ function App() {
                 >
                   <span className="fa fa-plus mr-5"></span> Thêm Công Việc
                 </button>
-                <TaskSortControl onSort={onSortTaskItem} value={sortItem} />
+                <TaskSortControl />
               </div>
             </div>
             <div className="row mt-15" style={{ marginTop: "15px" }}>
               <div className="col-xs-12 col-sm-12 col-md-12 col-lg-12">
-                <TaskList
-                  tasks={filterTask}
-                  onDelete={onDeleteTaskItem}
-                  onFilter={onFilterTaskItem}
-                  onEdit={onEditTask}
-                />
+                <TaskList />
               </div>
             </div>
           </div>
@@ -180,4 +64,25 @@ function App() {
   );
 }
 
-export default App;
+const mapStateToProps = (state) => {
+  return {
+    isDispplay: state.toggleForm,
+    itemEditing: state.editTask,
+  };
+};
+
+const mapDispatchToProps = (dispatch, props) => {
+  return {
+    onToggleTask: () => {
+      dispatch(actions.toggleForm());
+    },
+    onOpenForm: () => {
+      dispatch(actions.openForm());
+    },
+    onClearForm: (tasks) => {
+      dispatch(actions.editTask(tasks));
+    },
+  };
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(App);
